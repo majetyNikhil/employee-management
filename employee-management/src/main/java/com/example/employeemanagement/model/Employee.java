@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Data
+@Getter
+@Setter
+@ToString(exclude = "manager")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

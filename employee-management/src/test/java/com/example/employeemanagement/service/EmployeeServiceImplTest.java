@@ -12,8 +12,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessException;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -21,18 +23,16 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.argThat;
 
 @ExtendWith(MockitoExtension.class)
 class EmployeeServiceImplTest {
 
     @Mock
     private EmployeeRepository employeeRepository;
-
     @Mock
-    private RestTemplate restTemplate;
+    private WebClient webClient;
 
     @InjectMocks
     private EmployeeServiceImpl employeeService;
@@ -247,21 +247,38 @@ class EmployeeServiceImplTest {
     void fetchExternalInfo_Success() {
         String query = "1";
         String expectedResponse = "{\"data\": \"test\"}";
-        when(restTemplate.getForObject(anyString(), eq(String.class))).thenReturn(expectedResponse);
 
-        String result = employeeService.fetchExternalInfo(query);
+        WebClient.RequestHeadersUriSpec requestHeadersUriSpec = mock(WebClient.RequestHeadersUriSpec.class);
+        WebClient.RequestHeadersSpec requestHeadersSpec = mock(WebClient.RequestHeadersSpec.class);
+        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
 
-        assertEquals(expectedResponse, result);
+        when(webClient.get()).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(String.class)).thenReturn(Mono.just(expectedResponse));
+
+        StepVerifier.create(employeeService.fetchExternalInfo(query))
+                .expectNext(expectedResponse)
+                .verifyComplete();
     }
 
     @Test
     void fetchExternalInfo_WhenServiceUnavailable() {
-        when(restTemplate.getForObject(anyString(), eq(String.class)))
-                .thenThrow(new ResourceAccessException("External service unavailable"));
+        String query = "1";
+        WebClient.RequestHeadersUriSpec requestHeadersUriSpec = mock(WebClient.RequestHeadersUriSpec.class);
+        WebClient.RequestHeadersSpec requestHeadersSpec = mock(WebClient.RequestHeadersSpec.class);
+        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
 
-        assertThrows(ResourceAccessException.class, () ->
-            employeeService.fetchExternalInfo("1")
-        );
+        when(webClient.get()).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(String.class)).thenReturn(Mono.error(
+                WebClientResponseException.create(503, "Service Unavailable", null, null, null)));
+
+        StepVerifier.create(employeeService.fetchExternalInfo(query))
+                .expectErrorMatches(throwable -> throwable instanceof WebClientResponseException
+                        && throwable.getMessage().contains("503"))
+                .verify();
     }
 
     @Test

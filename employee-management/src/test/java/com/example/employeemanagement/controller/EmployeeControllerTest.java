@@ -13,6 +13,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.ResourceAccessException;
+import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
 import java.util.List;
@@ -181,7 +182,7 @@ class EmployeeControllerTest {
 
     @Test
     void fetchExternal_Success() {
-        String expectedResponse = "{\"data\": \"test\"}";
+        Mono<String> expectedResponse = Mono.just("{\"data\": \"test\"}");
         when(employeeService.fetchExternalInfo(anyString())).thenReturn(expectedResponse);
 
         ResponseEntity<?> response = employeeController.fetchExternal("1");
@@ -197,7 +198,7 @@ class EmployeeControllerTest {
                 .thenThrow(new ResourceAccessException("External service unavailable"));
 
         ResponseEntity<?> response = employeeController.fetchExternal("1");
-        
+
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
         assertEquals("External service unavailable", response.getBody());
     }
