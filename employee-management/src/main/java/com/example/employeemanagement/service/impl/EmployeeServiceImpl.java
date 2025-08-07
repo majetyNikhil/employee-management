@@ -12,7 +12,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -22,7 +21,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class EmployeeServiceImpl implements EmployeeService {
-    private static final Logger logger = LoggerFactory.getLogger(EmployeeServiceImpl.class);
     private final EmployeeRepository employeeRepository;
     private final RestTemplate restTemplate;
     @Value("${json.service.url}")
@@ -97,8 +95,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public String fetchExternalInfo(String query) {
         String url = externalServiceUrl + query;
-        String result = restTemplate.getForObject(url, String.class);
-        return result;
+        return restTemplate.getForObject(url, String.class);
     }
 
     @Override
