@@ -3,6 +3,8 @@ package com.example.employeemanagement.service.impl;
 import com.example.employeemanagement.dto.EmployeeDTO;
 import com.example.employeemanagement.model.Employee;
 import com.example.employeemanagement.service.EmployeeServiceExternal;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,8 @@ public class EmployeeServiceExternalImpl implements EmployeeServiceExternal {
     private String externalServiceUrl;
 
     @Override
+    @CircuitBreaker(name = "externalServiceCB", fallbackMethod = "fallback")
+    @Retry(name = "externalServiceRetry")
     public Mono<String> fetchExternalInfo(String query) {
         String url = externalServiceUrl + query;
         return webClient.get()
