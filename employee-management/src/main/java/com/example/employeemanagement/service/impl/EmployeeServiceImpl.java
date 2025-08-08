@@ -7,7 +7,6 @@ import com.example.employeemanagement.repository.EmployeeRepository;
 import com.example.employeemanagement.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -90,7 +89,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Transactional(readOnly = true)
     public List<EmployeeDTO> getAllEmployees() {
         return employeeRepository.findAll().stream()
-                .filter(emp -> emp.getStatus().equals("ACTIVE"))
+                .filter(emp -> emp.getStatus() != null && emp.getStatus().equals("ACTIVE"))
                 .map(emp -> EmployeeDTO.builder()
                         .id(emp.getId())
                         .name(emp.getName())
@@ -123,7 +122,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public List<EmployeeDTO> getEmployeesByManager(Long managerId) {
         return employeeRepository.findByManager_Id(managerId).stream()
-                .filter(emp -> emp.getStatus().equals("ACTIVE"))
+                .filter(emp -> emp.getStatus() != null && emp.getStatus().equals("ACTIVE"))
                 .map(emp -> EmployeeDTO.builder()
                         .id(emp.getId())
                         .name(emp.getName())

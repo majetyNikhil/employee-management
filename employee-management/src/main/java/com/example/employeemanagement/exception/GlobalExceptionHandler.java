@@ -35,6 +35,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleGeneral(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
     }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<String> handleValidationException(MethodArgumentNotValidException ex) {
         String errorMessage = ex.getBindingResult()
@@ -45,4 +46,15 @@ public class GlobalExceptionHandler {
             .orElse("Validation failed");
         return ResponseEntity.badRequest().body(errorMessage);
     }
+
+    @ExceptionHandler(ExternalConnectTimeoutException.class)
+    public ResponseEntity<?> handleConnectTimeout(ExternalConnectTimeoutException ex) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(ExternalReadTimeoutException.class)
+    public ResponseEntity<?> handleReadTimeout(ExternalReadTimeoutException ex) {
+        return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT).body(ex.getMessage());
+    }
+
 }

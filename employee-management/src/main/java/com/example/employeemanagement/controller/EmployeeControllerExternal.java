@@ -2,6 +2,8 @@ package com.example.employeemanagement.controller;
 
 import com.example.employeemanagement.dto.EmployeeDTO;
 import com.example.employeemanagement.exception.EmployeeNotFoundException;
+import com.example.employeemanagement.exception.ExternalConnectTimeoutException;
+import com.example.employeemanagement.exception.ExternalReadTimeoutException;
 import com.example.employeemanagement.service.EmployeeService;
 import com.example.employeemanagement.service.EmployeeServiceExternal;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,7 +28,7 @@ public class EmployeeControllerExternal {
     public ResponseEntity<?> fetchExternal(@PathVariable String id) {
         try {
             return ResponseEntity.ok(employeeServiceExternal.fetchExternalInfo(id));
-        } catch (ResourceAccessException e) {
+        } catch (ResourceAccessException | ExternalReadTimeoutException | ExternalConnectTimeoutException e) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(e.getMessage());
         }
     }
@@ -39,7 +41,7 @@ public class EmployeeControllerExternal {
             return ResponseEntity.ok(employeeServiceExternal.postEmpoyeeToExternal(employeeDTO));
         } catch (EmployeeNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (ResourceAccessException e) {
+        } catch (ExternalReadTimeoutException | ExternalConnectTimeoutException | ResourceAccessException e) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(e.getMessage());
         }
     }

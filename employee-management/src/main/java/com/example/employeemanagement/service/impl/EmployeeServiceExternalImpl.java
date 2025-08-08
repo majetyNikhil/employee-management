@@ -1,10 +1,14 @@
 package com.example.employeemanagement.service.impl;
 
 import com.example.employeemanagement.dto.EmployeeDTO;
+import com.example.employeemanagement.exception.ExternalConnectTimeoutException;
+import com.example.employeemanagement.exception.ExternalReadTimeoutException;
 import com.example.employeemanagement.model.Employee;
 import com.example.employeemanagement.service.EmployeeServiceExternal;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
+import io.netty.channel.ConnectTimeoutException;
+import io.netty.handler.timeout.TimeoutException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -26,7 +30,9 @@ public class EmployeeServiceExternalImpl implements EmployeeServiceExternal {
         return webClient.get()
                 .uri(url)
                 .retrieve()
-                .bodyToMono(String.class);
+                .bodyToMono(String.class)
+                .onErrorMap(this::mapTimeouts)
+                ;
     }
 
     @Override
@@ -43,6 +49,23 @@ public class EmployeeServiceExternalImpl implements EmployeeServiceExternal {
                 .uri(externalServiceUrl)
                 .bodyValue(employee)
                 .retrieve()
-                .bodyToMono(String.class);
+                .bodyToMono(String.class)
+                .onErrorMap(this::mapTimeouts);
     }
+
+    private Throwable mapTimeouts(Throwable ex) {
+        if (ex instanceof ConnectTimeoutException) {
+            return new ExternalConnectTimeoutException("Connection to external service timed out", ex);
+        }
+        if (ex instanceof TimeoutException) {
+            return new ExternalReadTimeoutException("External service did not respond in time", ex);
+        }
+        return ex;
+    }
+
+    @SuppressWarnings("unused")
+    private Mono<String> fallback(String query, Throwable ex) {
+        return Mono.error(ex);
+    }
+
 }
