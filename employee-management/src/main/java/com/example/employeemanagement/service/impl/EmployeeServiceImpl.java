@@ -10,8 +10,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,9 +19,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeRepository employeeRepository;
-    private final WebClient webClient;
-    @Value("${json.service.url}")
-    private String externalServiceUrl;
 
     @Override
     @Transactional
@@ -89,15 +84,6 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with id: " + id));
         emp.setStatus("INACTIVE");
         employeeRepository.save(emp);
-    }
-
-    @Override
-    public Mono<String> fetchExternalInfo(String query) {
-        String url = externalServiceUrl + query;
-        return webClient.get()
-                    .uri(url)
-                    .retrieve()
-                    .bodyToMono(String.class);
     }
 
     @Override

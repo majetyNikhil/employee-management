@@ -244,44 +244,6 @@ class EmployeeServiceImplTest {
     }
 
     @Test
-    void fetchExternalInfo_Success() {
-        String query = "1";
-        String expectedResponse = "{\"data\": \"test\"}";
-
-        WebClient.RequestHeadersUriSpec requestHeadersUriSpec = mock(WebClient.RequestHeadersUriSpec.class);
-        WebClient.RequestHeadersSpec requestHeadersSpec = mock(WebClient.RequestHeadersSpec.class);
-        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
-
-        when(webClient.get()).thenReturn(requestHeadersUriSpec);
-        when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.bodyToMono(String.class)).thenReturn(Mono.just(expectedResponse));
-
-        StepVerifier.create(employeeService.fetchExternalInfo(query))
-                .expectNext(expectedResponse)
-                .verifyComplete();
-    }
-
-    @Test
-    void fetchExternalInfo_WhenServiceUnavailable() {
-        String query = "1";
-        WebClient.RequestHeadersUriSpec requestHeadersUriSpec = mock(WebClient.RequestHeadersUriSpec.class);
-        WebClient.RequestHeadersSpec requestHeadersSpec = mock(WebClient.RequestHeadersSpec.class);
-        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
-
-        when(webClient.get()).thenReturn(requestHeadersUriSpec);
-        when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.bodyToMono(String.class)).thenReturn(Mono.error(
-                WebClientResponseException.create(503, "Service Unavailable", null, null, null)));
-
-        StepVerifier.create(employeeService.fetchExternalInfo(query))
-                .expectErrorMatches(throwable -> throwable instanceof WebClientResponseException
-                        && throwable.getMessage().contains("503"))
-                .verify();
-    }
-
-    @Test
     void searchEmployee_Success() {
         String searchName = "John";
         List<Employee> employees = Arrays.asList(testEmployee);

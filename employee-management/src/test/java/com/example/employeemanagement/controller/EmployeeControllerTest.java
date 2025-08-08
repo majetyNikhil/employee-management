@@ -12,8 +12,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.ResourceAccessException;
-import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
 import java.util.List;
@@ -180,28 +178,6 @@ class EmployeeControllerTest {
         assertEquals("Employee not found", response.getBody());
     }
 
-    @Test
-    void fetchExternal_Success() {
-        Mono<String> expectedResponse = Mono.just("{\"data\": \"test\"}");
-        when(employeeService.fetchExternalInfo(anyString())).thenReturn(expectedResponse);
-
-        ResponseEntity<?> response = employeeController.fetchExternal("1");
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(expectedResponse, response.getBody());
-        verify(employeeService).fetchExternalInfo("1");
-    }
-
-    @Test
-    void fetchExternal_WhenServiceUnavailable() {
-        when(employeeService.fetchExternalInfo(anyString()))
-                .thenThrow(new ResourceAccessException("External service unavailable"));
-
-        ResponseEntity<?> response = employeeController.fetchExternal("1");
-
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
-        assertEquals("External service unavailable", response.getBody());
-    }
 
     @Test
     void searchEmployees_Success() {

@@ -11,12 +11,11 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.ResourceAccessException;
 
 @RestController
 @RequestMapping("/api/employees")
 @RequiredArgsConstructor
-@Tag(name = "Employee Management API", description = "APIs for managing employees")
+@Tag(name = "Employee Management Database APIs", description = "APIs for managing employees data")
 public class EmployeeController {
     private final EmployeeService employeeService;
 
@@ -64,16 +63,6 @@ public class EmployeeController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (DataAccessException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Database error occurred");
-        }
-    }
-
-    @Operation(summary = "Fetch external info for employee")
-    @GetMapping("/external/{query}")
-    public ResponseEntity<?> fetchExternal(@PathVariable String query) {
-        try {
-            return ResponseEntity.ok(employeeService.fetchExternalInfo(query));
-        } catch (ResourceAccessException e) {
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(e.getMessage());
         }
     }
 
