@@ -35,6 +35,8 @@ public class EmployeeServiceExternalImpl implements EmployeeServiceExternal {
                 ;
     }
 
+    @CircuitBreaker(name = "externalServiceCB", fallbackMethod = "fallback")
+    @Retry(name = "externalServiceRetry")
     @Override
     public Mono<String> postEmpoyeeToExternal(EmployeeDTO employeeDTO) {
         Employee employee = Employee.builder()
@@ -65,6 +67,11 @@ public class EmployeeServiceExternalImpl implements EmployeeServiceExternal {
 
     @SuppressWarnings("unused")
     private Mono<String> fallback(String query, Throwable ex) {
+        return Mono.error(ex);
+    }
+
+    @SuppressWarnings("unused")
+    private Mono<String> fallback(EmployeeDTO employeeDTO, Throwable ex) {
         return Mono.error(ex);
     }
 
